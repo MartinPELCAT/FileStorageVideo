@@ -1,0 +1,4 @@
+target
+*.pdf
+*.fit
+.DS_STORE
