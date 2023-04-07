@@ -13,6 +13,13 @@ async fn main() {
 
     let filename = decoder::get_file_name(&image);
 
+    let data = decoder::get_data_of_the_image(
+        &image,
+        number_of_pixels_on_last_line,
+        valid_colors_on_last_pixel,
+    );
+
+    decoder::write_file(data, filename.clone());
     println!("pixel: {:?}", valid_colors_on_last_pixel);
     println!("last_valid_height: {:?}", last_valid_height);
     println!(

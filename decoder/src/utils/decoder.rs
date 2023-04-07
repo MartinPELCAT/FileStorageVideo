@@ -1,3 +1,5 @@
+use std::fs;
+
 use image::{DynamicImage, GenericImageView, Rgba};
 
 // First pixel is the number of values valid on the last chunk for exemple if the last chunk is  [12,34] the first pixel value would be [2,2,2]
@@ -37,7 +39,7 @@ pub fn get_file_name(image: &DynamicImage) -> String {
     // This is the number of valid chars on the last pixel
     let last_pixel_chars = number_of_pixels_to_take % 6;
 
-    let number_of_pixels_of_the_title = get_number_of_pixels_of_the_title(number_of_chars);
+    let number_of_pixels_of_the_title = get_number_of_pixels_of_the_title(&image);
 
     let mut title_hexa_value = String::from("");
 
@@ -56,10 +58,56 @@ pub fn get_file_name(image: &DynamicImage) -> String {
     String::from_utf8(title).unwrap()
 }
 
+pub fn get_data_of_the_image(
+    image: &DynamicImage,
+    number_of_pixels_on_last_line: u8,
+    valid_colors_on_last_pixel: u8,
+) -> Vec<u8> {
+    let number_of_pixels_of_the_title = get_number_of_pixels_of_the_title(&image);
+
+    let (width, height) = image.dimensions();
+
+    let mut data = Vec::new();
+
+    for y in 0..height {
+        for x in 0..width {
+            if y == 0 && x < (number_of_pixels_of_the_title + 4).into() {
+                continue;
+            }
+
+            if y == height - 1 && x > (number_of_pixels_on_last_line - 1).into() {
+                continue;
+            }
+
+            let pix = image.get_pixel(x, y);
+            let rgb = pix.0;
+
+            if y == height - 1 && x == (number_of_pixels_on_last_line - 1).into() {
+                println!("last pixel valid : {:?}", pix);
+
+                for i in 0..(valid_colors_on_last_pixel as usize) {
+                    data.push(rgb[i]);
+                }
+
+                continue;
+            }
+            data.push(rgb[0]);
+            data.push(rgb[1]);
+            data.push(rgb[2]);
+        }
+    }
+
+    data
+}
+
 fn get_number_of_chars_of_the_title(pixel: Rgba<u8>) -> u8 {
     pixel.0[0]
 }
-fn get_number_of_pixels_of_the_title(number_of_chars: u8) -> u8 {
+fn get_number_of_pixels_of_the_title(image: &DynamicImage) -> u8 {
+    let number_of_chars_pixel = image.get_pixel(3, 0);
+
+    let number_of_chars = get_number_of_chars_of_the_title(number_of_chars_pixel);
+
     let number_of_pixels_to_take = number_of_chars * 2;
 
     // This is the number of valid chars on the last pixel
@@ -81,4 +129,8 @@ fn rbg_to_hex(rgba: Rgba<u8>) -> String {
     let b = val[2];
 
     format!("{:x}{:x}{:x}", r, g, b)
+}
+
+pub fn write_file(data: Vec<u8>, filename: String) {
+    fs::write(filename, data).unwrap();
 }
