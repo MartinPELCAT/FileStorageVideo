@@ -10,3 +10,17 @@
   - On the decoder, we will be able to know that the next (`8` \* 2 = 16) => 16 / 6 = 2.6666 => ceil(2.6666) => 3 so the next 3 pixels are the filename
 
 - The filename.len() must be < 255 the filename will be cropped from the start to avoid losing the extension
+
+# FFmeg
+
+To create the video this command seems nice.
+
+```
+ffmpeg -framerate 1 -i result%03d.png output.mp4
+```
+
+To extract images from the video this command seems nice
+
+```
+ffmpeg -i input.mp4 -r 1 output%03d.png
+```

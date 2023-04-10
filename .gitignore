@@ -2,3 +2,5 @@ target
 *.pdf
 *.fit
 .DS_STORE
+*.png
+*.mp4
