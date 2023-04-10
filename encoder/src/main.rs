@@ -1,5 +1,6 @@
 pub mod utils;
 
+use futures::future::join_all;
 use image::{Rgb, RgbImage};
 use tokio::fs;
 
@@ -7,7 +8,7 @@ use crate::utils::{constantes, encoder, functions};
 
 #[tokio::main]
 async fn main() {
-    let filename = "file.pdf";
+    let filename = "file.mp3";
 
     let mut file = fs::read(filename).await.unwrap();
 
@@ -58,30 +59,41 @@ async fn main() {
 
     println!("{}", number_of_images_to_create);
 
+    let mut futures = vec![];
+
     for image_number in 0..number_of_images_to_create {
-        let mut image = RgbImage::new(constantes::MAX_WIDTH as u32, current_video_height as u32);
+        let all_pixels = all_pixels.clone();
+        let current_video_height = current_video_height;
+        let index = image_number;
 
-        for y in 0..current_video_height {
-            for x in 0..constantes::MAX_WIDTH {
-                let index = (current_video_height * constantes::MAX_WIDTH * image_number)
-                    + (x + (constantes::MAX_WIDTH * y));
+        let handle = tokio::task::spawn(async move {
+            let mut image =
+                RgbImage::new(constantes::MAX_WIDTH as u32, current_video_height as u32);
 
-                // println!("{}", index);
+            for y in 0..current_video_height {
+                for x in 0..constantes::MAX_WIDTH {
+                    let index = (current_video_height * constantes::MAX_WIDTH * index)
+                        + (x + (constantes::MAX_WIDTH * y));
 
-                let pix = image.get_pixel_mut(x as u32, y as u32);
+                    let pix = image.get_pixel_mut(x as u32, y as u32);
 
-                let pixel_to_draw = all_pixels.get(index as usize);
+                    let pixel_to_draw = all_pixels.get(index as usize);
 
-                if let Some(pixel) = pixel_to_draw {
-                    *pix = Rgb([pixel.0, pixel.1, pixel.2]);
-                } else {
-                    *pix = Rgb([0, 0, 0]);
+                    if let Some(pixel) = pixel_to_draw {
+                        *pix = Rgb([pixel.0, pixel.1, pixel.2]);
+                    } else {
+                        *pix = Rgb([0, 0, 0]);
+                    }
                 }
             }
-        }
 
-        let path = format!("result{}.png", image_number);
+            let path = format!("result{:03}.png", index);
 
-        image.save(path).unwrap();
+            image.save(path).unwrap();
+        });
+
+        futures.push(handle);
     }
+
+    join_all(futures).await;
 }
