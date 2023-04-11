@@ -1,3 +1,7 @@
+# Prerequisite
+
+Install ffmpeg on you host
+
 # Encoding
 
 - First pixel is the number of values valid on the last chunk for exemple if the last chunk is [12,34] the first pixel value would be [2,2,2]
@@ -13,7 +17,8 @@
 
 # FFmeg
 
-To create the video this command seems nice. Mp4 is a shit format.
+To create the video this command seems nice. Mp4 is a shit format.  
+The avi format seems to keep the valid colors
 
 ```
 ffmpeg -framerate 1 -i result%03d.png -c:v ffv1 output.avi
@@ -24,3 +29,7 @@ To extract images from the video this command seems nice
 ```
 ffmpeg -i output.avi -c:v png -r 1 output%03d.png
 ```
+
+# TODO
+
+Check if after an upload on youtube and a download, the colors are still valid.
