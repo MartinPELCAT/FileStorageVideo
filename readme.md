@@ -13,14 +13,14 @@
 
 # FFmeg
 
-To create the video this command seems nice.
+To create the video this command seems nice. Mp4 is a shit format.
 
 ```
-ffmpeg -framerate 1 -i result%03d.png output.mp4
+ffmpeg -framerate 1 -i result%03d.png -c:v ffv1 output.avi
 ```
 
 To extract images from the video this command seems nice
 
 ```
-ffmpeg -i input.mp4 -r 1 output%03d.png
+ffmpeg -i output.avi -c:v png -r 1 output%03d.png
 ```

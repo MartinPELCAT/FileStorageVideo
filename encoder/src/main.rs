@@ -1,16 +1,25 @@
 pub mod utils;
 
+use std::fs;
+
 use futures::future::join_all;
 use image::{Rgb, RgbImage};
-use tokio::fs;
 
-use crate::utils::{constantes, encoder, functions};
+use crate::utils::{constantes, encoder, functions, video};
 
 #[tokio::main]
 async fn main() {
-    let filename = "file.mp3";
+    let out_dir_path = "out";
+    if !fs::metadata(out_dir_path).is_ok() {
+        fs::create_dir(out_dir_path).unwrap();
+    } else {
+        fs::remove_dir_all(out_dir_path).unwrap();
+        fs::create_dir(out_dir_path).unwrap();
+    }
 
-    let mut file = fs::read(filename).await.unwrap();
+    let filename = "file3.pdf";
+
+    let mut file = fs::read(filename).unwrap();
 
     let len = file.len();
 
@@ -19,6 +28,8 @@ async fn main() {
     let file_pixels = encoder::resize_file_to_be_chunked(&mut file);
 
     let valid_filename = encoder::get_valid_filename(filename);
+
+    println!("valid_filename {}", valid_filename);
 
     let pixel_number_4 = encoder::get_pixel_number_four(&valid_filename);
 
@@ -37,10 +48,10 @@ async fn main() {
     let (_w, h, last_line_number_of_pixels) =
         encoder::find_integer_dimensions(numbers_of_pixels as i32);
 
-    println!("{h} {last_line_number_of_pixels}");
     let second_pixel = encoder::get_pixel_number_two(h);
 
     let third_pixel = encoder::get_pixel_number_three(last_line_number_of_pixels);
+
     let number_of_images_to_create = encoder::get_the_number_of_images_to_create(h as f64);
 
     let all_pixels = encoder::get_all_pixels(
@@ -56,8 +67,6 @@ async fn main() {
     if number_of_images_to_create > 1 {
         current_video_height = constantes::MAX_HEIGHT;
     }
-
-    println!("{}", number_of_images_to_create);
 
     let mut futures = vec![];
 
@@ -87,7 +96,7 @@ async fn main() {
                 }
             }
 
-            let path = format!("result{:03}.png", index);
+            let path = format!("out/result{:03}.png", index);
 
             image.save(path).unwrap();
         });
@@ -96,4 +105,6 @@ async fn main() {
     }
 
     join_all(futures).await;
+
+    video::create_video();
 }
