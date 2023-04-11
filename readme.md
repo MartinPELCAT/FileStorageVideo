@@ -1,3 +1,5 @@
+## Youtube allow us to download only mp4 and the quality is garbage
+
 # Prerequisite
 
 Install ffmpeg on you host

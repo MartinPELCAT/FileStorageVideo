@@ -17,7 +17,7 @@ async fn main() {
         fs::create_dir(out_dir_path).unwrap();
     }
 
-    let filename = "horaires.pdf";
+    let filename = "archive.zip";
 
     let mut file = fs::read(filename).unwrap();
 
@@ -65,6 +65,8 @@ async fn main() {
     if number_of_images_to_create > 1 {
         current_video_height = constantes::MAX_HEIGHT;
     }
+
+    println!("Number of images to create: {}", number_of_images_to_create);
 
     let mut futures = vec![];
 
