@@ -26,7 +26,7 @@ async fn main() {
 
     let decoded_video = DecodedVideo::new(files);
 
-    let data = decoded_video.get_relevent_data();
+    let data = decoded_video.get_relevent_data().await;
 
     decoder::write_file(data, decoded_video.get_file_title());
 }

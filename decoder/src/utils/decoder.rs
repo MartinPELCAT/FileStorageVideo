@@ -1,6 +1,8 @@
 use std::fs::{self, DirEntry};
 
+use futures::future::join_all;
 use image::{DynamicImage, GenericImageView, Rgba};
+use tokio::task::JoinHandle;
 
 fn decode_pixel_hexa(pixel: Rgba<u8>) -> u32 {
     let hex = rbg_to_hex(pixel);
@@ -123,27 +125,44 @@ impl DecodedVideo {
         decode_pixel_hexa(pixel)
     }
 
-    fn collect_all_pixels(&self) -> Vec<(u8, u8, u8)> {
-        let mut all_data = vec![];
+    async fn collect_all_pixels(&self) -> Vec<(u8, u8, u8)> {
+        let mut handles: Vec<JoinHandle<Vec<(u8, u8, u8)>>> = Vec::with_capacity(self.images.len());
+
         for image_path in &self.images {
-            let image = image::open(image_path).unwrap();
+            let image_path = image_path.clone();
+            let handle = tokio::spawn(async move {
+                let mut all_data = vec![];
 
-            let (w, h) = image.dimensions();
+                let image = image::open(image_path).unwrap();
 
-            for y in 0..h {
-                for x in 0..w {
-                    let pixel = image.get_pixel(x, y);
-                    let rgb = pixel.0;
-                    all_data.push((rgb[0], rgb[1], rgb[2]))
+                let (w, h) = image.dimensions();
+
+                for y in 0..h {
+                    for x in 0..w {
+                        let pixel = image.get_pixel(x, y);
+                        let rgb = pixel.0;
+                        all_data.push((rgb[0], rgb[1], rgb[2]))
+                    }
                 }
-            }
+
+                all_data
+            });
+
+            handles.push(handle);
+        }
+        let vec_images = join_all(handles).await;
+
+        let mut all_data = vec![];
+
+        for data in vec_images {
+            all_data.extend(data);
         }
 
-        all_data
+        all_data.into_iter().flatten().collect::<Vec<_>>()
     }
 
-    pub fn get_relevent_data(&self) -> Vec<u8> {
-        let mut all_pixels = self.collect_all_pixels();
+    pub async fn get_relevent_data(&self) -> Vec<u8> {
+        let mut all_pixels = self.collect_all_pixels().await;
 
         let (width, height) = self.get_images_dimensions();
 

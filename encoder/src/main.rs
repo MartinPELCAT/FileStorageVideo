@@ -17,7 +17,7 @@ async fn main() {
         fs::create_dir(out_dir_path).unwrap();
     }
 
-    let filename = "livret.pdf";
+    let filename = "horaires.pdf";
 
     let mut file = fs::read(filename).unwrap();
 
