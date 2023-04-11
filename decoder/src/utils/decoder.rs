@@ -17,7 +17,7 @@ fn rbg_to_hex(rgba: Rgba<u8>) -> String {
     let g = val[1];
     let b = val[2];
 
-    format!("{:x}{:x}{:x}", r, g, b)
+    format!("{:02x}{:02x}{:02x}", r, g, b)
 }
 
 pub fn write_file(data: Vec<u8>, filename: String) {

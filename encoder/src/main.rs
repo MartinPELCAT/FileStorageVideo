@@ -17,7 +17,7 @@ async fn main() {
         fs::create_dir(out_dir_path).unwrap();
     }
 
-    let filename = "file3.pdf";
+    let filename = "livret.pdf";
 
     let mut file = fs::read(filename).unwrap();
 
@@ -28,8 +28,6 @@ async fn main() {
     let file_pixels = encoder::resize_file_to_be_chunked(&mut file);
 
     let valid_filename = encoder::get_valid_filename(filename);
-
-    println!("valid_filename {}", valid_filename);
 
     let pixel_number_4 = encoder::get_pixel_number_four(&valid_filename);
 
